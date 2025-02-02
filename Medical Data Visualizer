@@ -1,0 +1,79 @@
+Import the Data First, load the dataset from the CSV file and assign it to the df variable.
+
+python
+Copy
+Edit
+import pandas as pd
+
+df = pd.read_csv('medical_examination.csv')
+Add the Overweight Column Calculate BMI and determine if a person is overweight.
+
+python
+Copy
+Edit
+# Convert height from cm to meters for BMI calculation
+df['height'] = df['height'] / 100  # Convert height to meters
+df['bmi'] = df['weight'] / (df['height'] ** 2)  # BMI formula
+
+# Create the overweight column
+df['overweight'] = df['bmi'].apply(lambda x: 1 if x > 25 else 0)
+Normalize Data for Cholesterol and Glucose Normalize the cholesterol and glucose values, converting them into binary values.
+
+python
+Copy
+Edit
+df['cholesterol'] = df['cholesterol'].apply(lambda x: 0 if x == 1 else 1)
+df['gluc'] = df['gluc'].apply(lambda x: 0 if x == 1 else 1)
+Draw the Categorical Plot This step requires reshaping the data using pd.melt and then plotting using sns.catplot().
+
+python
+Copy
+Edit
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+def draw_cat_plot():
+    # Melt the dataframe
+    df_cat = pd.melt(df, id_vars=['cardio'], value_vars=['cholesterol', 'gluc', 'smoke', 'alco', 'active', 'overweight'])
+    
+    # Rename columns for easier access
+    df_cat = df_cat.rename(columns={'variable': 'feature', 'value': 'value'})
+
+    # Create the catplot
+    g = sns.catplot(x='feature', hue='value', col='cardio', data=df_cat, kind='count', height=5, aspect=1)
+    
+    # Set up the plot labels and title
+    g.set_axis_labels('Feature', 'Count')
+    g.set_titles('Cardio: {col_name}')
+    plt.show()
+
+draw_cat_plot()
+Draw the Heat Map Before creating the heat map, you need to clean the data to remove incorrect entries, as mentioned in the instructions.
+
+python
+Copy
+Edit
+def draw_heat_map():
+    # Filter the data based on the given conditions
+    df_heat = df[(df['ap_lo'] <= df['ap_hi']) & 
+                 (df['height'] >= df['height'].quantile(0.025)) &
+                 (df['height'] <= df['height'].quantile(0.975)) &
+                 (df['weight'] >= df['weight'].quantile(0.025)) &
+                 (df['weight'] <= df['weight'].quantile(0.975))]
+
+    # Calculate the correlation matrix
+    corr = df_heat.corr()
+
+    # Generate the mask for the upper triangle
+    mask = np.triu(np.ones_like(corr, dtype=bool))
+
+    # Set up the matplotlib figure
+    plt.figure(figsize=(10, 8))
+
+    # Plot the heatmap
+    sns.heatmap(corr, mask=mask, annot=True, fmt='.1f', cmap='coolwarm', vmin=-1, vmax=1, linewidths=0.5, square=True)
+
+    # Display the plot
+    plt.show()
+
+draw_heat_map()
