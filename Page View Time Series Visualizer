@@ -1,0 +1,100 @@
+Import the Data Load the data from the CSV file and set the date as the index.
+
+python
+Copy
+Edit
+import pandas as pd
+
+# Import the dataset
+df = pd.read_csv('fcc-forum-pageviews.csv', index_col='date', parse_dates=True)
+Clean the Data
+
+Filter out the days when the page views were in the top 2.5% and bottom 2.5% of the dataset. To do this, first calculate the 2.5th and 97.5th percentiles, then filter based on those values.
+python
+Copy
+Edit
+# Calculate the 2.5% and 97.5% percentiles
+lower_limit = df['page_views'].quantile(0.025)
+upper_limit = df['page_views'].quantile(0.975)
+
+# Filter the data to remove outliers
+df = df[(df['page_views'] >= lower_limit) & (df['page_views'] <= upper_limit)]
+Create a Line Plot
+
+Use Matplotlib to create a line plot of daily page views.
+The x-axis should represent the date, and the y-axis should represent the page views.
+python
+Copy
+Edit
+import matplotlib.pyplot as plt
+
+def draw_line_plot():
+    fig, ax = plt.subplots(figsize=(12, 6))
+    ax.plot(df.index, df['page_views'], color='blue', linewidth=1)
+    ax.set_title('Daily freeCodeCamp Forum Page Views 5/2016-12/2019')
+    ax.set_xlabel('Date')
+    ax.set_ylabel('Page Views')
+    plt.show()
+
+draw_line_plot()
+Create a Bar Plot
+
+You need to create a bar chart that shows the average page views per month, grouped by year.
+Use df.resample('M').mean() to group by month and year.
+Plot the average daily page views for each month and differentiate the months using the legend.
+python
+Copy
+Edit
+def draw_bar_plot():
+    df_monthly = df.resample('M').mean()
+    df_monthly['year'] = df_monthly.index.year
+    df_monthly['month'] = df_monthly.index.month
+
+    # Pivot table to get months as columns
+    df_monthly_pivot = df_monthly.pivot_table(values='page_views', index='year', columns='month')
+
+    # Plot the bar chart
+    ax = df_monthly_pivot.plot(kind='bar', figsize=(12, 6), width=1, legend=True)
+    ax.set_title('Average Daily Page Views per Month')
+    ax.set_xlabel('Years')
+    ax.set_ylabel('Average Page Views')
+    ax.legend(title='Months')
+    plt.show()
+
+draw_bar_plot()
+Create Box Plots
+
+Use Seaborn to create two adjacent box plots:
+A Year-wise Box Plot (Trend)
+A Month-wise Box Plot (Seasonality)
+The year-wise box plot should show the distribution of page views over the years.
+The month-wise box plot should show the distribution of page views over each month.
+python
+Copy
+Edit
+import seaborn as sns
+
+def draw_box_plot():
+    # Prepare data for Year-wise and Month-wise box plots
+    df['year'] = df.index.year
+    df['month'] = df.index.month
+
+    # Create the figure with two subplots
+    fig, ax = plt.subplots(1, 2, figsize=(18, 6))
+
+    # Year-wise box plot
+    sns.boxplot(x='year', y='page_views', data=df, ax=ax[0])
+    ax[0].set_title('Year-wise Box Plot (Trend)')
+
+    # Month-wise box plot
+    sns.boxplot(x='month', y='page_views', data=df, ax=ax[1])
+    ax[1].set_title('Month-wise Box Plot (Seasonality)')
+
+    # Set month labels to start from January
+    ax[1].set_xticklabels(['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'])
+
+    plt.show()
+
+draw_box_plot()
+Putting It All Together:
+You will combine all of the above
